@@ -3,8 +3,11 @@ package mobiledev.unb.ca.broadcastreceiverlab
 import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -12,6 +15,7 @@ import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
@@ -44,6 +48,17 @@ class MainActivity : AppCompatActivity() {
     private var alarmManager: AlarmManager? = null
     private lateinit var alarmReceiverIntent: PendingIntent
 
+    private val batteryInfoReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            if (Intent.ACTION_POWER_DISCONNECTED.equals(intent.getAction())) {
+                Toast.makeText(context, "Power disconnected :(", Toast.LENGTH_SHORT).show()
+            }
+            if (Intent.ACTION_POWER_CONNECTED.equals(intent.getAction())) {
+                Toast.makeText(context, "Power Connected :)", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -63,13 +78,25 @@ class MainActivity : AppCompatActivity() {
         setCameraActivityResultLauncher()
 
         // TODO (NOTIFICATION): Remove when permissions are being checked
-        initAlarmValues()
+        // initAlarmValues()
 
         // TODO (NOTIFICATION): Ensure the permissions are set for posting notifications
-        // checkPermissionAndScheduleAlarm()
+        checkPermissionAndScheduleAlarm()
 
         // TODO: Set the battery filter intents and
         //   register the inner broadcast receiver
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(Intent.ACTION_BATTERY_OKAY)
+        intentFilter.addAction(Intent.ACTION_BATTERY_LOW)
+        intentFilter.addAction(Intent.ACTION_POWER_CONNECTED)
+        intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED)
+
+        registerReceiver(batteryInfoReceiver, intentFilter)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(batteryInfoReceiver)
     }
 
     // Permissions functions
@@ -125,6 +152,13 @@ class MainActivity : AppCompatActivity() {
         // TODO - Define the alarm pending intent
         //    Hint: Use alarmReceiverIntent for this
 
+        val intent = Intent(this, AlarmReceiver::class.java)
+        alarmReceiverIntent = PendingIntent.getBroadcast(this,
+            Constants.NOTIFICATION_REQUEST_ID,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         // Start the alarm
         startAlarm()
     }
@@ -132,11 +166,18 @@ class MainActivity : AppCompatActivity() {
     private fun startAlarm() {
         // TODO: Create an inexact repeating alarm which will wake up
         //  the device and fire the alarm receiver intent
+        alarmManager?.setInexactRepeating(
+            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            SystemClock.elapsedRealtime() + 5000,
+            60000,
+            alarmReceiverIntent
+        )
         Log.i(TAG, "Alarm Started")
     }
 
     private fun cancelAlarm() {
         // TODO: Cancel the alarm
+        alarmManager?.cancel(alarmReceiverIntent)
         Log.i(TAG, "Alarm Cancelled")
     }
 
