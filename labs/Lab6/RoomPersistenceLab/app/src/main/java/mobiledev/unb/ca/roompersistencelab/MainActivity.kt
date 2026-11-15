@@ -2,6 +2,7 @@ package mobiledev.unb.ca.roompersistencelab
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -26,6 +27,8 @@ import mobiledev.unb.ca.roompersistencelab.repositories.ItemRepository
 import mobiledev.unb.ca.roompersistencelab.ui.ItemListAdapter
 import mobiledev.unb.ca.roompersistencelab.ui.ItemViewModel
 import mobiledev.unb.ca.roompersistencelab.ui.ItemViewModelFactory
+import mobiledev.unb.ca.roompersistencelab.utils.KeyboardUtils
+import android.view.inputmethod.InputMethodManager
 import kotlin.getValue
 
 class MainActivity : AppCompatActivity() {
@@ -94,9 +97,11 @@ class MainActivity : AppCompatActivity() {
                 itemViewModel.searchItems.collect { items ->
                     // TODO
                     //  Update the resultsCountTextView text to indicate how many records have been found
+                    resultsCountTextView.text = items.size.toString()
 
                     // TODO
                     //  Push the list of items into itemAdapter using submitList()
+                    itemAdapter.submitList(items)
                 }
             }
         }
@@ -122,6 +127,13 @@ class MainActivity : AppCompatActivity() {
                 //    for records in the database that match the query item.
                 //    NOTE: This will update the searchItems variable in the view model which
                 //    will trigger an update to the observer defined above.
+                if (newText.isNullOrEmpty()) {
+                    resultsCountTextView.visibility = View.GONE
+                    itemViewModel.resetSearchItemsList()
+                } else {
+                    resultsCountTextView.visibility = TextView.VISIBLE
+                    itemViewModel.findItemsWithName(newText)
+                }
                 return true
             }
         })
@@ -158,9 +170,19 @@ class MainActivity : AppCompatActivity() {
             //  HINT:
             //    Have a look TextInputEditText public attributes to see what is available for showing an error message
 
+            if (editName.text?.isEmpty() == true) {
+                editName.error = "Please enter a name!"
+                return@setOnClickListener
+            }
+            if (editNumber.text?.isEmpty() == true || editNumber.text?.toString()?.toIntOrNull() == null) {
+                editNumber.error = "Please enter a number!"
+                return@setOnClickListener
+            }
             // TODO
             //  Call the addItem method using the the text from these EditTexts.
-
+            val name = editName.text.toString()
+            val num = editNumber.text.toString()
+            addItem(name, num)
             // Close the dialog when complete
             alertDialog.dismiss()
         }
@@ -185,5 +207,9 @@ class MainActivity : AppCompatActivity() {
         //  choices.
         //  HINT:
         //    There is a utility object called KeyboardUtils which may be helpful here
+        itemViewModel.insert(name, number.toInt())
+        showToast("Item added!")
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(searchView.windowToken, 0)
     }
 }

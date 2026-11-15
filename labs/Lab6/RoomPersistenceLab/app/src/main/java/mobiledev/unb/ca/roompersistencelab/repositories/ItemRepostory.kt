@@ -19,8 +19,19 @@ class ItemRepository(
     // TODO
     //  Add function to insert a record
     //  Additional details can be found here - https://kotlinlang.org/docs/coroutines-basics.html#suspending-functions
+    suspend fun insertRecord(name: String, num: Int) {
+        return withContext(ioDispatcher) {
+            val newItem = Item(name=name, num=num)
+            itemDao.insertItem(newItem)
+        }
+    }
 
     // TODO
     //  Add function to perform the search and return a list of Item objects
     //  Additional details can be found here - https://kotlinlang.org/docs/coroutines-basics.html#suspending-functions
+    suspend fun getItems(name: String): List<Item> {
+        return withContext(ioDispatcher) {
+            itemDao.getAllItems(name)
+        }
+    }
 }

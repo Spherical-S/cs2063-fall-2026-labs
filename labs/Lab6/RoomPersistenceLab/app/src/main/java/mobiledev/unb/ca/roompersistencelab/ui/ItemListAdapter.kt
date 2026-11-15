@@ -30,6 +30,8 @@ class ItemListAdapter : ListAdapter<Item, ItemListAdapter.ItemViewHolder>(ItemDi
             // TODO
             //  Set the nameTextView and numberTextView text
             //  using the name and number from the item
+            nameTextView.text = item.name
+            numberTextView.text = item.num.toString()
         }
     }
 

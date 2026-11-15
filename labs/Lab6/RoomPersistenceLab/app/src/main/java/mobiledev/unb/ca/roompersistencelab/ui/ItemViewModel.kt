@@ -24,18 +24,25 @@ class ItemViewModel(private val itemRepository: ItemRepository) : ViewModel() {
 
     // TODO
     //  Add mapping calls between the UI and Database for inserting a record
+    fun insert(name: String, number: Int) {
+        viewModelScope.launch {
+            itemRepository.insertRecord(name, number)
+        }
+    }
 
     //  Add mapping call between the UI and Database for searching the records
     fun findItemsWithName(name: String) {
         viewModelScope.launch {
             // TODO
             //  Add mapping call between the UI and Database for searching the records
+            val items = itemRepository.getItems(name)
 
             // TODO
             //  Update the internal state (Thread-Safe)
             //  HINT: In Coroutines you can modify the value of a MutableStateFlow using
             //  either the .update { } extension function (preferred)
             //  or by directly assigning a value to the .value property
+            _items.update { items }
         }
     }
 
