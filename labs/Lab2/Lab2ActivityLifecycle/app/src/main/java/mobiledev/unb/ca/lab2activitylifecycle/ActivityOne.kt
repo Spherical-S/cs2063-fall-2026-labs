@@ -24,6 +24,9 @@ class ActivityOne : AppCompatActivity() {
     //   Follow the provided example where createTextView
     //   refers to any of the private TextView objects
     private var createTextView: TextView? = null
+    private var startTextView: TextView? = null
+    private var resumeTextView: TextView? = null
+    private var restartTextView: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i(TAG, "onCreate() called")
@@ -51,6 +54,7 @@ class ActivityOne : AppCompatActivity() {
             //   it will need access to an email application activity. We will
             //   investigate intents further in a future lab!
             val intent = Intent(this@ActivityOne, ActivityTwo::class.java)
+            startActivity(intent)
         }
 
         // TODO 4
@@ -62,6 +66,9 @@ class ActivityOne : AppCompatActivity() {
         //  Follow the provided example for createTextView for the other
         //  three private TextView objects
         createTextView = findViewById(R.id.onCreate)
+        startTextView = findViewById(R.id.onStart)
+        resumeTextView = findViewById(R.id.onResume)
+        restartTextView = findViewById(R.id.onRestart)
 
         // TODO 6
         //  If a savedInstanceState Bundle exists then there have already
@@ -73,10 +80,14 @@ class ActivityOne : AppCompatActivity() {
         //   If it does, counter values will be loaded from its previous state
         if (savedInstanceState != null) {
             onCreateCount = savedInstanceState.getInt(CREATE_VALUE)
+            onStartCount = savedInstanceState.getInt(START_VALUE)
+            onResumeCount = savedInstanceState.getInt(RESUME_VALUE)
+            onRestartCount = savedInstanceState.getInt(RESTART_VALUE)
         }
 
         // TODO 8
         //  Increment onCreateCount
+        onCreateCount++
 
         updateCountsDisplay()
     }
@@ -87,6 +98,7 @@ class ActivityOne : AppCompatActivity() {
 
         // TODO 8
         //  Increment onStartCount
+        onStartCount++
 
         updateCountsDisplay()
     }
@@ -97,6 +109,7 @@ class ActivityOne : AppCompatActivity() {
 
         // TODO 8
         //  Increment onResumeCount
+        onResumeCount++
 
         updateCountsDisplay()
     }
@@ -107,6 +120,7 @@ class ActivityOne : AppCompatActivity() {
 
         // TODO 8
         //  Increment onRestartCount
+        onRestartCount++
 
         updateCountsDisplay()
     }
@@ -117,6 +131,9 @@ class ActivityOne : AppCompatActivity() {
         //  savedInstanceState Bundle so they can be refreshed when
         //  returning to this Activity.
         outState.putInt(CREATE_VALUE, onCreateCount)
+        outState.putInt(START_VALUE, onStartCount)
+        outState.putInt(RESUME_VALUE, onResumeCount)
+        outState.putInt(RESTART_VALUE, onRestartCount)
 
         // Must always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(outState)
@@ -129,6 +146,9 @@ class ActivityOne : AppCompatActivity() {
         //   Follow the provided example where createTextView
         //   refers to any of the private TextView objects
         createTextView?.text = getString(R.string.on_create_message, onCreateCount)
+        startTextView?.text = getString(R.string.on_start_message, onStartCount)
+        resumeTextView?.text = getString(R.string.on_resume_message, onResumeCount)
+        restartTextView?.text = getString(R.string.on_restart_message, onRestartCount)
     }
 
     companion object {
