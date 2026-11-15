@@ -1,10 +1,12 @@
 package mobiledev.unb.ca.lab3intents
 
+import android.content.ActivityNotFoundException
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -15,9 +17,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.File
+import androidx.core.net.toUri
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class ExternalCallsActivity : AppCompatActivity() {
     // Attributes for storing the file photo path
@@ -52,24 +61,91 @@ class ExternalCallsActivity : AppCompatActivity() {
 
         val backButton = findViewById<Button>(R.id.btnBack)
         backButton.setOnClickListener {
-            // TODO: Add intent to navigate back to MainActivity
+//            val intent = Intent(this, MainActivity::class.java)
+//            try {
+//                startActivity(intent)
+//            } catch (_: ActivityNotFoundException) {
+//                Log.e(TAG, "Unable to start the activity")
+//            }
+            finish()
         }
     }
 
     // Email functions
     private fun dispatchSendEmailIntent() {
         // Handle the send email intent
-        // TODO: Complete implementation
+        val recipient = arrayOf("sadiq.shahid101@unb.ca")
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = "mailto:".toUri()
+            putExtra(Intent.EXTRA_EMAIL, recipient)
+            putExtra(Intent.EXTRA_SUBJECT, "CS2063 Lab 3")
+            putExtra(Intent.EXTRA_TEXT, "This is a test email")
+        }
+        if (intent.resolveActivity(packageManager) != null) {
+            val chooserIntent = Intent.createChooser(intent, "")
+            startActivity(chooserIntent)
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        // Create an image file name
+        Log.i(TAG, "INSIDE CREATE IMAGE FILE")
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        Log.i(TAG, "ABOUT TO RETURN FROM CREATING IMAGE FILE")
+        return File.createTempFile(
+            "JPEG_${timeStamp}_", /* prefix */
+            ".jpg", /* suffix */
+            storageDir /* directory */
+        ).apply {
+            // Save a file: path for use with ACTION_VIEW intents
+            currentPhotoPath = absolutePath
+        }
     }
 
     // Camera Functions
     private fun dispatchTakePhotoIntent() {
         // Handle the photo intent
-        // TODO: Complete implementation
+        Log.i(TAG, "STARTED CAMERA FUNCTION")
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            // Ensure that there's a camera activity to handle the intent
+            takePictureIntent.resolveActivity(packageManager)?.also {
+                // Create the File where the photo should go
+                val photoFile: File? = try {
+                    Log.i(TAG, "STARTING CREATE IMAGE FILE")
+                    createImageFile()
+                } catch (ex: IOException) {
+                    Log.e(TAG, "Error saving photo or something")
+                    Log.i(TAG, "ERROR CREATING FILE FOR CAPTURED PHOTO")
+                    null
+                }
+                // Continue only if the File was successfully created
+                photoFile?.also {
+                    Log.i(TAG, "PHOTO FILE CREATED SUCCESS")
+                    val photoURI: Uri = FileProvider.getUriForFile(
+                        this,
+                        "$packageName.provider",
+                        it
+                    )
+                    Log.i(TAG, "FOUND PHOTO URI")
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    cameraActivityResultLauncher?.launch(takePictureIntent)
+                }
+            }
+        }
     }
 
     private fun setCameraActivityResultLauncher() {
-        // TODO: Handle the image capture result
+        Log.i(TAG, "REGISTERING CAMERA")
+        cameraActivityResultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result: ActivityResult ->
+            if (result.resultCode == RESULT_OK) {
+                Log.i(TAG, "SUCCESSFULLY GOT RESULT FROM CAMERA")
+                galleryAddPic()
+            }
+        }
     }
 
     private fun galleryAddPic() {
@@ -127,6 +203,6 @@ class ExternalCallsActivity : AppCompatActivity() {
     }
     companion object {
         // String for LogCat documentation
-        private const val TAG = "External Calls Activity"
+        private const val TAG = "ExternalCallsActivity"
     }
 }
