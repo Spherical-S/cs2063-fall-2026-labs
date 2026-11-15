@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import mobiledev.unb.ca.threadinglab.models.Course
+import java.io.BufferedReader
 import kotlin.collections.ArrayList
 
 /**
@@ -42,6 +43,8 @@ class JsonUtils(context: Context) {
                 // TODO 2
                 //  1. Create a Course object from the courseItem object
                 //  2. Add the Course object to courses ArrayList
+                val c = Course(courseItem.courseId, courseItem.name, courseItem.description)
+                courses.add(c)
             }
         }
     }
@@ -58,7 +61,9 @@ class JsonUtils(context: Context) {
         //      A BufferedReader (https://www.geeksforgeeks.org/read-from-files-using-bufferedreader-in-kotlin/)
         //      or InputStream (https://www.baeldung.com/kotlin/inputstream-to-string)
         //      works well in this case
-        TODO("Not yet implemented")
+        val assetManager = context.assets
+        val inputStream = assetManager.open(CS_JSON_FILE)
+        return inputStream.bufferedReader().use(BufferedReader::readText)
     }
 
     companion object {

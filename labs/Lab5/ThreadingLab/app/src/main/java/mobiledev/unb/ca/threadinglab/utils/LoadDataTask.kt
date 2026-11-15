@@ -1,8 +1,11 @@
 package mobiledev.unb.ca.threadinglab.utils
 
 import android.content.Context
+import android.content.Intent
+import android.telecom.Call
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.Dispatchers
@@ -10,6 +13,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mobiledev.unb.ca.threadinglab.CourseListAdapter
+import mobiledev.unb.ca.threadinglab.DetailActivity
 import mobiledev.unb.ca.threadinglab.models.Course
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -35,6 +39,7 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
 
             // TODO 1
             //  Load the data from the JSON assets file and return the list of courses
+            val jsonUtils = JsonUtils(parentActivity)
 
             launch(Dispatchers.Main) {
                 // Simulate a long-running operation
@@ -42,16 +47,19 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
                     sleep()
                     // TODO 2
                     //  Update the progress attribute of the progress bar
+                    circularProgressIndicator.progress = i * 10
                 }
 
                 // TODO 3
                 //  Using the updateDisplay method update the UI with the results
+                updateDisplay(jsonUtils.courses)
             }
         }
     }
 
     private suspend fun sleep() {
-        delay(500.milliseconds)
+        //delay(500.milliseconds)
+        delay(100.milliseconds)
     }
 
     private fun updateDisplay(courseList: ArrayList<Course>) {
@@ -65,6 +73,7 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
         //  Create a Toast indicating that the file has been loaded
         //    HINT: Read this for help with Toast:
         //    http://developer.android.com/guide/topics/ui/notifiers/toasts.html
+        Toast.makeText(appContext, "File has been loaded!", Toast.LENGTH_SHORT).show()
     }
 
     private fun updateRecyclerView(courseList: ArrayList<Course>) {
@@ -79,6 +88,11 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
             //      The Course ID
             //      The Course Name
             //      The Course Description
+            val intent = Intent(appContext, DetailActivity::class.java)
+            intent.putExtra("courseID", course.id)
+            intent.putExtra("courseName", course.name)
+            intent.putExtra("courseDescription", course.description)
+            parentActivity.startActivity(intent)
         }
 
         recyclerView.apply {
@@ -86,6 +100,7 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
         }
 
         // TODO 5: Push the course list into courseAdapter using submitList()
+        courseAdapter.submitList(courseList)
     }
 
     companion object {
