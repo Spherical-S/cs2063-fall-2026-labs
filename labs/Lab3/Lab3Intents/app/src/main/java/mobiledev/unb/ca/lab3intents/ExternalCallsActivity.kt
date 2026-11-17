@@ -110,29 +110,26 @@ class ExternalCallsActivity : AppCompatActivity() {
         Log.i(TAG, "STARTED CAMERA FUNCTION")
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
             // Ensure that there's a camera activity to handle the intent
-            takePictureIntent.resolveActivity(packageManager)?.also {
-                // Create the File where the photo should go
-                val photoFile: File? = try {
-                    Log.i(TAG, "STARTING CREATE IMAGE FILE")
-                    createImageFile()
-                } catch (ex: IOException) {
-                    Log.e(TAG, "Error saving photo or something")
-                    Log.i(TAG, "ERROR CREATING FILE FOR CAPTURED PHOTO")
-                    null
-                }
-                // Continue only if the File was successfully created
-                photoFile?.also {
-                    Log.i(TAG, "PHOTO FILE CREATED SUCCESS")
-                    val photoURI: Uri = FileProvider.getUriForFile(
-                        this,
-                        "$packageName.provider",
-                        it
-                    )
-                    Log.i(TAG, "FOUND PHOTO URI")
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    cameraActivityResultLauncher?.launch(takePictureIntent)
-                }
+            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
+            if (takePictureIntent.resolveActivity(packageManager) == null) {
+                return
             }
+
+            val photoFile: File? = try {
+                createImageFile()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving file")
+                null
+            }
+
+            if (photoFile == null) {
+                return
+            }
+
+            val photoURI: Uri = FileProvider.getUriForFile(this, "$packageName.provider", photoFile)
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+            cameraActivityResultLauncher?.launch(takePictureIntent)
         }
     }
 
