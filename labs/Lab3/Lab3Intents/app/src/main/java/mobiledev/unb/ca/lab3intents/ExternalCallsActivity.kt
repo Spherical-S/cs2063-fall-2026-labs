@@ -61,12 +61,14 @@ class ExternalCallsActivity : AppCompatActivity() {
 
         val backButton = findViewById<Button>(R.id.btnBack)
         backButton.setOnClickListener {
+            //Uncomment the following lines if you want to make a new intent to send to mainactivity
 //            val intent = Intent(this, MainActivity::class.java)
 //            try {
 //                startActivity(intent)
 //            } catch (_: ActivityNotFoundException) {
 //                Log.e(TAG, "Unable to start the activity")
 //            }
+            //kills this activity, so its like hitting the back button or swiping to go back in the task stack
             finish()
         }
     }
@@ -81,12 +83,16 @@ class ExternalCallsActivity : AppCompatActivity() {
             putExtra(Intent.EXTRA_SUBJECT, "CS2063 Lab 3")
             putExtra(Intent.EXTRA_TEXT, "This is a test email")
         }
+        // check if there is an activity that can handle this intent
         if (intent.resolveActivity(packageManager) != null) {
+            // create an intent that is the window that appears to choose which app to use for this intent
+            // then call that intent which wraps our email intent
             val chooserIntent = Intent.createChooser(intent, "")
             startActivity(chooserIntent)
         }
     }
 
+    // Called by dispatchTakePhotoIntent to create a spot in storage for the image we will take
     @Throws(IOException::class)
     private fun createImageFile(): File {
         // Create an image file name
@@ -109,13 +115,15 @@ class ExternalCallsActivity : AppCompatActivity() {
         // Handle the photo intent
         Log.i(TAG, "STARTED CAMERA FUNCTION")
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            // Ensure that there's a camera activity to handle the intent
+            // create the photo intent
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 
+            // if there is no app that can handle the take photo intent, exit early
             if (takePictureIntent.resolveActivity(packageManager) == null) {
                 return
             }
 
+            // create a file to save our taken image
             val photoFile: File? = try {
                 createImageFile()
             } catch (e: Exception) {
@@ -123,10 +131,12 @@ class ExternalCallsActivity : AppCompatActivity() {
                 null
             }
 
+            // if storage wasnt able to be allocated for our new picture, exit early
             if (photoFile == null) {
                 return
             }
 
+            // pass the allocated location for the image as an extra, then execute the intent
             val photoURI: Uri = FileProvider.getUriForFile(this, "$packageName.provider", photoFile)
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
             cameraActivityResultLauncher?.launch(takePictureIntent)
