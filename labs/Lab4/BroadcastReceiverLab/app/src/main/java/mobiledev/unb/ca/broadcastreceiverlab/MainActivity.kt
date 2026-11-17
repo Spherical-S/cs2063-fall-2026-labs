@@ -85,12 +85,14 @@ class MainActivity : AppCompatActivity() {
 
         // TODO: Set the battery filter intents and
         //   register the inner broadcast receiver
+        // Creates an intent filter which is used to check if a received intent matches any of the ones in the filter
         val intentFilter = IntentFilter()
         intentFilter.addAction(Intent.ACTION_BATTERY_OKAY)
         intentFilter.addAction(Intent.ACTION_BATTERY_LOW)
         intentFilter.addAction(Intent.ACTION_POWER_CONNECTED)
         intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED)
 
+        // calls the onReceive function in batteryInfoReceiver whenever an intent within the intentFilter is received
         registerReceiver(batteryInfoReceiver, intentFilter)
     }
 
