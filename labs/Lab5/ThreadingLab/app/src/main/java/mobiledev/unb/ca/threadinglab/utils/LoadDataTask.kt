@@ -33,6 +33,8 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
     }
 
     fun execute() {
+        // Launch a coroutine thread on an IO (background task) thread to load JSON data
+        // without freezing the UI
         MainScope().launch(Dispatchers.IO) {
             // Show the circular progress indicator
             circularProgressIndicator.visibility = ProgressBar.VISIBLE
@@ -41,6 +43,8 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
             //  Load the data from the JSON assets file and return the list of courses
             val jsonUtils = JsonUtils(parentActivity)
 
+            // switch back to the main UI thread to update the loading bar then
+            // update the display with courses when they're done loading
             launch(Dispatchers.Main) {
                 // Simulate a long-running operation
                 for (i in 0..DOWNLOAD_TIME) {
@@ -78,8 +82,11 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
 
     private fun updateRecyclerView(courseList: ArrayList<Course>) {
         // Set up the adapter for use in the RecyclerView
+        // Basically means courseAdapter = new CourseListAdapter({ course -> ... })
+        // So we are saying the onClick function is we take the course, make an intent to
+        // start the details activity and fill it with the details of the course we
+        // clicked on then start the activity
         val courseAdapter = CourseListAdapter { course ->
-            // This will loop through each course element and apply an action for the listener attribute
             // TODO 4
             //  Set the onClickListener for the TextView in the ViewHolder (holder) to create
             //  an explicit intent to launch DetailActivity
@@ -95,11 +102,13 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
             parentActivity.startActivity(intent)
         }
 
+        // Set our recyclerView to use the courseAdapter we just created
         recyclerView.apply {
             adapter = courseAdapter
         }
 
         // TODO 5: Push the course list into courseAdapter using submitList()
+        // Updates the internal list in the courseAdapter with all our courses
         courseAdapter.submitList(courseList)
     }
 
