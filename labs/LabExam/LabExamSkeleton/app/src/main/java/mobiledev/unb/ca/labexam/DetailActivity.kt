@@ -1,7 +1,12 @@
 package mobiledev.unb.ca.labexam
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -20,22 +25,35 @@ class DetailActivity : AppCompatActivity() {
 
         // TODO
         //  Get the intent that started this activity along with the extras added to it
+        val intent = getIntent()
+        val eventYear = intent.getStringExtra(Constants.INTENT_KEY_YEAR)
+        val eventNumber = intent.getStringExtra(Constants.INTENT_KEY_NUMBER)
+        val eventHost = intent.getStringExtra(Constants.INTENT_KEY_HOST_CITY)
+        val eventDates = intent.getStringExtra(Constants.INTENT_KEY_DATES)
+        val wikipediaLink = intent.getStringExtra(Constants.INTENT_KEY_WIKIPEDIA_LINK)
 
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
             // TODO
             //  Set the title of the action bar to be the event number
             setDisplayHomeAsUpEnabled(true)
+            title = eventNumber
         }
 
         // TODO
         //  Set the details for the host city text view
+        val hostTextView: TextView = findViewById(R.id.host_city_text_view)
+        hostTextView.text = eventHost
 
         // TODO
         //  Set the details for the year text view
+        val yearTextView: TextView = findViewById(R.id.year_text_view)
+        yearTextView.text = eventYear
 
         // TODO
         //  Set the details for the dates text view
+        val datesTextView: TextView = findViewById(R.id.dates_text_view)
+        datesTextView.text = eventDates
 
         // TODO
         //  Set an onClickListener such that when this button is clicked, an implicit intent is started
@@ -46,6 +64,17 @@ class DetailActivity : AppCompatActivity() {
         //   https://developer.android.com/reference/android/content/Intent.html#resolveActivity(android.content.pm.PackageManager)
         //   https://developer.android.com/guide/components/intents-common.html#Browser
         //   https://developer.android.com/reference/android/net/Uri.html#parse(java.lang.String)
+        val openPageButton: Button = findViewById(R.id.wiki_button)
+
+        openPageButton.setOnClickListener {
+            val webPage: Uri = Uri.parse(wikipediaLink)
+            val browserIntent = Intent(Intent.ACTION_VIEW, webPage)
+            if (browserIntent.resolveActivity(packageManager) != null) {
+                startActivity(browserIntent)
+            } else {
+                Toast.makeText(this, "Couldn't open browser...", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

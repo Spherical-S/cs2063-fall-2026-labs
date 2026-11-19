@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.recyclerview.widget.RecyclerView
 import android.util.Log
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -38,9 +39,11 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
         MainScope().launch(Dispatchers.IO) {
             // TODO
             //  Show the circular progress indicator
+            circularProgressIndicator.visibility = ProgressBar.VISIBLE
 
             // TODO
             //  Load the data from the JSON assets file and retrieve its list of events
+            val jsonUtils = JsonUtils(parentActivity)
 
             launch(Dispatchers.Main) {
                 // Simulate a long-running operation
@@ -48,10 +51,12 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
                     sleep()
                     // TODO
                     //  Update the progress attribute of the progress bar
+                    circularProgressIndicator.progress = i*10
                 }
 
                 // TODO
                 //  Call the updateDisplay method update the UI with the results
+                updateDisplay(jsonUtils.events)
             }
         }
     }
@@ -68,6 +73,13 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
                 //  Create an explicit intent to launch DetailActivity
                 //  from the parentActivity object passed into the class constructor
                 //  NOTE: Also include any necessary extra values
+                val intent = Intent(appContext, DetailActivity::class.java)
+                intent.putExtra(Constants.INTENT_KEY_YEAR, event.year)
+                intent.putExtra(Constants.INTENT_KEY_DATES, event.dates)
+                intent.putExtra(Constants.INTENT_KEY_NUMBER, event.number)
+                intent.putExtra(Constants.INTENT_KEY_HOST_CITY, event.hostCity)
+                intent.putExtra(Constants.INTENT_KEY_WIKIPEDIA_LINK, event.wikipediaLink)
+                parentActivity.startActivity(intent)
             }
         )
 
@@ -78,6 +90,7 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
 
         // TODO
         //  Push the event list into eventAdapter using submitList()
+        eventAdapter.submitList(eventList)
     }
 
     private fun updateDisplay(eventList: ArrayList<Event>) {
@@ -86,9 +99,11 @@ class LoadDataTask(private val parentActivity: AppCompatActivity) {
 
         // TODO
         //  Hide the circular progress indicator
+        circularProgressIndicator.visibility = ProgressBar.INVISIBLE
         
         // TODO
         //  Create a Toast indicating that the file has been loaded
+        Toast.makeText(appContext, "File has been loaded!", Toast.LENGTH_SHORT).show()
     }
 
     companion object {

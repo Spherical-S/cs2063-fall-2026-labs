@@ -1,14 +1,17 @@
 package mobiledev.unb.ca.labexam
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import mobiledev.unb.ca.labexam.helpers.SharedPreferencesHelper
 import mobiledev.unb.ca.labexam.models.Event
 
 /**
@@ -20,6 +23,7 @@ import mobiledev.unb.ca.labexam.models.Event
 class EventListAdapter(
     private val onRowClicked: (Event) -> Unit
 ) : ListAdapter<Event, EventListAdapter.EventViewHolder>(EventDiffCallback) {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_row, parent, false)
@@ -39,6 +43,8 @@ class EventListAdapter(
         fun bind(event: Event) {
             // TODO
             //  Set the TextView text values to be the number and host city of the event
+            eventNumberTextView.text = event.number
+            eventHostTextView.text = event.hostCity
 
             // TODO: SharedPreferences
             //  Set the value of visitedCheckbox to be checked if the
@@ -47,14 +53,24 @@ class EventListAdapter(
             //  If there is no value in the shared preferences then the checkbox should not
             //  be checked (i.e., assume a default value of false for anything not in
             //  the shared preferences).
+            val isVisited = SharedPreferencesHelper.getBooleanValue(event.number, false)
+            visitedCheckbox.setChecked(isVisited)
 
             // This method is called when a CheckBox is clicked, and its status
             // changes from checked to not checked, or from not checked to checked.
             // isChecked will be true if the CheckBox is now checked, and false if
             // the CheckBox is now not checked.
-            visitedCheckbox.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-                // TODO: SharedPreferences
-                //   Save the CheckBox selected state using SharedPreferencesHelper
+//            visitedCheckbox.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
+//                // TODO: SharedPreferences
+//                //   Save the CheckBox selected state using SharedPreferencesHelper
+//                Log.d(TAG, "Received change for number ${event.number}. It is now $isChecked")
+//                SharedPreferencesHelper.saveBooleanValue(event.number, isChecked)
+//            }
+
+            visitedCheckbox.setOnClickListener {
+                val isChecked = visitedCheckbox.isChecked
+                Log.d(TAG, "Received change for number ${event.number}. It is now $isChecked")
+                SharedPreferencesHelper.saveBooleanValue(event.number, isChecked)
             }
 
             // Set the onClickListener to the onRowClicked function using the current event info details
@@ -72,5 +88,9 @@ class EventListAdapter(
         override fun areContentsTheSame(oldItem: Event, newItem: Event): Boolean {
             return oldItem == newItem
         }
+    }
+
+    companion object {
+        private const val TAG = "EventListAdapter"
     }
 }
